@@ -312,15 +312,21 @@ def secao_brasil(partidas: list, grupos: list, hoje) -> list[str]:
             linhas.append("Sem jogos do Brasil confirmados no momento.")
 
     for grupo in grupos:
-        entrada = next(
-            (e for e in grupo.get("table", []) if eh_brasil(e.get("team", {}))), None
-        )
+        tabela = grupo.get("table", [])
+        entrada = next((e for e in tabela if eh_brasil(e.get("team", {}))), None)
         if entrada:
             letra = letra_grupo(grupo["group"])
-            linhas.append(
-                f"📍 Grupo {letra}: Brasil em *{entrada['position']}º lugar* "
-                f"com {entrada['points']} pts"
-            )
+            if entrada.get("playedGames", 0) == 0:
+                rivais = " · ".join(
+                    f"{bandeira(e['team'])} {nome_pt(e['team'])}"
+                    for e in tabela if not eh_brasil(e.get("team", {}))
+                )
+                linhas.append(f"📍 Grupo {letra}, contra: {rivais}")
+            else:
+                linhas.append(
+                    f"📍 Grupo {letra}: Brasil em *{entrada['position']}º lugar* "
+                    f"com {entrada['points']} pts"
+                )
             break
 
     return linhas
@@ -374,15 +380,28 @@ def secao_classificacao(grupos: list, partidas: list, hoje) -> list[str]:
     if not fase_grupos_viva:
         return []
 
-    linhas = ["📊 *CLASSIFICAÇÃO DOS GRUPOS*"]
+    nada_jogado = all(
+        e.get("playedGames", 0) == 0
+        for g in grupos for e in g.get("table", [])
+    )
+    linhas = ["👥 *OS GRUPOS DA COPA*" if nada_jogado else "📊 *CLASSIFICAÇÃO DOS GRUPOS*"]
     for grupo in grupos:
         letra = letra_grupo(grupo["group"])
+        tabela = grupo.get("table", [])
+        if all(e.get("playedGames", 0) == 0 for e in tabela):
+            # Tabela sem nenhum jogo é só ruído ("todo mundo em 1º");
+            # mostramos quem está no grupo e pronto.
+            times = " · ".join(
+                f"{bandeira(e['team'])} {nome_pt(e['team'])}" for e in tabela
+            )
+            linhas.append(f"*Grupo {letra}:* {times}")
+            continue
         linhas.append(f"*Grupo {letra}*")
-        for e in grupo.get("table", []):
+        for posicao, e in enumerate(tabela, 1):
             time_api = e.get("team", {})
             saldo = e.get("goalDifference", 0)
             linha = (
-                f"{e['position']}º {bandeira(time_api)} {nome_pt(time_api)} — "
+                f"{posicao}º {bandeira(time_api)} {nome_pt(time_api)} — "
                 f"{e['points']} pts ({e['playedGames']}J, {saldo:+d})"
             )
             if eh_brasil(time_api):
