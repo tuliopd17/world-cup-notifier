@@ -486,6 +486,12 @@ def normalizar_telefone(bruto: str) -> str:
     return numero
 
 
+def env_limpo(nome: str) -> str:
+    # Secrets cadastrados via pipe no Windows podem vir com BOM (U+FEFF)
+    # na frente, o que quebra headers HTTP. Limpamos por garantia.
+    return os.environ.get(nome, "").replace(chr(0xFEFF), "").strip()
+
+
 # -------------------------------------------------------------------- main
 
 def main() -> int:
@@ -493,9 +499,9 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
 
     dry_run = "--dry-run" in sys.argv
-    token = os.environ.get("FOOTBALL_DATA_TOKEN", "")
-    apikey = os.environ.get("CALLMEBOT_APIKEY", "")
-    telefone = normalizar_telefone(os.environ.get("WHATSAPP_PHONE", ""))
+    token = env_limpo("FOOTBALL_DATA_TOKEN")
+    apikey = env_limpo("CALLMEBOT_APIKEY")
+    telefone = normalizar_telefone(env_limpo("WHATSAPP_PHONE"))
     hoje = datetime.now(TZ_BRASILIA).date()
 
     if not token:
