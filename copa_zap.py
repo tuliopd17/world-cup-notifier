@@ -492,8 +492,6 @@ def enviar_whatsapp(texto: str, telefone: str, apikey: str) -> None:
     partes = dividir_mensagem(texto)
     total = len(partes)
     for i, parte in enumerate(partes, 1):
-        if total > 1:
-            parte = f"({i}/{total})\n{parte}"
         resposta = requests.get(
             "https://api.callmebot.com/whatsapp.php",
             params={"phone": telefone, "text": parte, "apikey": apikey},
