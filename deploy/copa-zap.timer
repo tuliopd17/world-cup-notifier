@@ -1,0 +1,12 @@
+[Unit]
+Description=Dispara o Copa no Zap todo dia as 7h (horario de Brasilia)
+
+[Timer]
+# Usa o fuso do sistema. O setup.sh ajusta a VM para America/Sao_Paulo,
+# entao 07:00 aqui = 7h da manha no Brasil. Sem o atraso do GitHub Actions.
+OnCalendar=*-*-* 07:00:00
+# Se a VM estiver desligada/dormindo na hora, dispara assim que voltar.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

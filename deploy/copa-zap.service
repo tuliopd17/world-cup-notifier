@@ -1,0 +1,11 @@
+[Unit]
+Description=Copa no Zap - envio diario do resumo
+After=wa-server.service
+Wants=wa-server.service
+
+[Service]
+Type=oneshot
+User=copa
+WorkingDirectory=/opt/copa-do-mundo
+EnvironmentFile=/opt/copa-do-mundo/.env
+ExecStart=/opt/copa-do-mundo/.venv/bin/python copa_zap.py

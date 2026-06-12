@@ -3,5 +3,5 @@ __pycache__/
 .env
 venv/
 .venv/
-calibra_callmebot.py
-calibra2.py
+node_modules/
+wa-server/auth/

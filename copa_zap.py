@@ -501,7 +501,27 @@ def dividir_mensagem(texto: str, limite: int = 700) -> list[str]:
     return partes
 
 
-def enviar_whatsapp(texto: str, telefone: str, apikey: str) -> None:
+def enviar_via_servidor(texto: str, telefone: str, url: str, token: str) -> None:
+    """Envia a mensagem inteira, de uma vez, pro servidor Baileys local.
+    Sem limite de 768 nem partição — o WhatsApp aceita mensagens longas
+    quando enviadas pela sessão real."""
+    cabecalhos = {"X-Token": token} if token else {}
+    resposta = requests.post(
+        url,
+        json={"to": telefone, "text": texto},
+        headers=cabecalhos,
+        timeout=120,
+    )
+    if resposta.status_code == 503:
+        raise RuntimeError(
+            "wa-server respondeu 503 — WhatsApp ainda não conectou. "
+            "Cheque os logs do serviço e o QR code."
+        )
+    resposta.raise_for_status()
+    print(f"Mensagem enviada via servidor ({len(texto)} caracteres, em 1 parte).")
+
+
+def enviar_via_callmebot(texto: str, telefone: str, apikey: str) -> None:
     partes = dividir_mensagem(texto)
     total = len(partes)
     for i, parte in enumerate(partes, 1):
@@ -543,13 +563,28 @@ def main() -> int:
     token = env_limpo("FOOTBALL_DATA_TOKEN")
     apikey = env_limpo("CALLMEBOT_APIKEY")
     telefone = normalizar_telefone(env_limpo("WHATSAPP_PHONE"))
+    wa_url = env_limpo("WA_SERVER_URL")
+    wa_token = env_limpo("WA_SERVER_TOKEN")
+    usa_servidor = bool(wa_url)
     hoje = datetime.now(TZ_BRASILIA).date()
+
+    # Transporte preferido: servidor Baileys próprio (mensagem completa).
+    # CallMeBot fica como fallback se WA_SERVER_URL não estiver definido.
+    def enviar(texto: str) -> None:
+        if usa_servidor:
+            enviar_via_servidor(texto, telefone, wa_url, wa_token)
+        else:
+            enviar_via_callmebot(texto, telefone, apikey)
 
     if not token:
         print("ERRO: defina FOOTBALL_DATA_TOKEN.", file=sys.stderr)
         return 1
-    if not dry_run and (not apikey or not telefone):
-        print("ERRO: defina CALLMEBOT_APIKEY e WHATSAPP_PHONE (ou use --dry-run).", file=sys.stderr)
+    if not dry_run and not telefone:
+        print("ERRO: defina WHATSAPP_PHONE (ou use --dry-run).", file=sys.stderr)
+        return 1
+    if not dry_run and not usa_servidor and not apikey:
+        print("ERRO: defina WA_SERVER_URL (servidor próprio) ou CALLMEBOT_APIKEY.",
+              file=sys.stderr)
         return 1
 
     try:
@@ -563,7 +598,7 @@ def main() -> int:
         if dry_run:
             print(aviso)
         else:
-            enviar_whatsapp(aviso, telefone, apikey)
+            enviar(aviso)
         print(f"Falha na API de dados: {exc}", file=sys.stderr)
         return 1
 
@@ -575,13 +610,17 @@ def main() -> int:
 
     if dry_run:
         print(mensagem)
-        partes = dividir_mensagem(mensagem)
-        tamanhos = ", ".join(str(tamanho_whatsapp(p)) for p in partes)
-        print(f"\n--- dry run: {len(mensagem)} caracteres, {len(partes)} parte(s) "
-              f"({tamanhos} unidades UTF-16), nada foi enviado ---")
+        if usa_servidor:
+            print(f"\n--- dry run: {len(mensagem)} caracteres, 1 parte "
+                  f"(servidor próprio, sem limite), nada foi enviado ---")
+        else:
+            partes = dividir_mensagem(mensagem)
+            tamanhos = ", ".join(str(tamanho_whatsapp(p)) for p in partes)
+            print(f"\n--- dry run: {len(mensagem)} caracteres, {len(partes)} parte(s) "
+                  f"({tamanhos} unidades UTF-16), nada foi enviado ---")
         return 0
 
-    enviar_whatsapp(mensagem, telefone, apikey)
+    enviar(mensagem)
     print("Resumo do dia enviado com sucesso!")
     return 0
 

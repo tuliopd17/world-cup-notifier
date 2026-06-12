@@ -1,0 +1,7 @@
+# Scripts e units rodam em Linux: força fim de linha LF, mesmo commitando
+# do Windows. Evita "bad interpreter" e systemd recusando o arquivo.
+*.sh        text eol=lf
+*.service   text eol=lf
+*.timer     text eol=lf
+*.py        text eol=lf
+*.js        text eol=lf
