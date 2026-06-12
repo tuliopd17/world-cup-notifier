@@ -101,12 +101,14 @@ python teste_local.py
 
 ## Detalhes
 
-- **Horário**: o cron roda às 09:50 UTC (06:50 em Brasília). O GitHub Actions
-  costuma atrasar alguns minutos em horários cheios, então na prática a
-  mensagem chega por volta das 7h. Ajuste o cron em
+- **Horário**: o cron roda às 08:00 UTC (5h em Brasília). O GitHub Actions
+  atrasa bastante em horários cheios (até ~2h), então na prática a mensagem
+  chega por volta das 7h. Ajuste o cron em
   [.github/workflows/copa-no-zap.yml](.github/workflows/copa-no-zap.yml) se quiser.
-- **Mensagens longas**: o script divide automaticamente em partes `(1/2)`,
-  `(2/2)`... quando a mensagem passa de ~1500 caracteres (limite prático do
-  CallMeBot).
+- **Mensagens longas**: o CallMeBot trunca mensagens no caractere 768
+  (limite descoberto empiricamente — vale a contagem crua de caracteres,
+  emoji incluso). O script divide em partes de até 750, quebrando sempre em
+  linha inteira, com 65s entre partes para o CallMeBot não juntá-las com
+  uma linha de traços.
 - **Falha na API de dados**: você recebe um aviso no WhatsApp em vez de
   silêncio, e o workflow fica vermelho para você perceber.

@@ -23,7 +23,6 @@ import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
-from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import requests
@@ -466,19 +465,15 @@ def montar_mensagem(partidas: list, grupos: list, hoje) -> str:
 
 # ------------------------------------------------------------------- envio
 
-def custo_url(texto: str) -> int:
-    return len(quote(texto, safe=""))
-
-
-def dividir_mensagem(texto: str, limite: int = 1700) -> list[str]:
-    """O CallMeBot só aceita o texto na query string (GET), e o servidor
-    trunca URLs longas. Como cada emoji vira até 24 caracteres
-    percent-encoded, o limite tem que ser medido no texto JÁ codificado,
-    não na contagem crua. Quebra por linha inteira."""
+def dividir_mensagem(texto: str, limite: int = 750) -> list[str]:
+    """O CallMeBot trunca a mensagem no caractere 768 (limite descoberto
+    empiricamente: contagem crua de caracteres, emoji incluso — NÃO é o
+    tamanho percent-encoded nem bytes). Quebra por linha inteira, com
+    folga de 18 caracteres."""
     partes, atual = [], ""
     for linha in texto.split("\n"):
         candidata = f"{atual}\n{linha}" if atual else linha
-        if atual and custo_url(candidata) > limite:
+        if atual and len(candidata) > limite:
             partes.append(atual)
             atual = linha
         else:
@@ -563,9 +558,9 @@ def main() -> int:
     if dry_run:
         print(mensagem)
         partes = dividir_mensagem(mensagem)
-        tamanhos = ", ".join(str(custo_url(p)) for p in partes)
+        tamanhos = ", ".join(str(len(p)) for p in partes)
         print(f"\n--- dry run: {len(mensagem)} caracteres, {len(partes)} parte(s) "
-              f"(encoded: {tamanhos}), nada foi enviado ---")
+              f"({tamanhos} chars), nada foi enviado ---")
         return 0
 
     enviar_whatsapp(mensagem, telefone, apikey)
