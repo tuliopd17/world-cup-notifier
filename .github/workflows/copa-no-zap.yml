@@ -2,10 +2,10 @@ name: Copa no Zap
 
 on:
   schedule:
-    # GitHub Actions usa UTC. 09:50 UTC = 06:50 em Brasília (UTC-3).
-    # O cron do Actions costuma atrasar alguns minutos, então agendamos
-    # um pouco antes para a mensagem chegar perto das 7h.
-    - cron: "50 9 * * *"
+    # GitHub Actions usa UTC. 08:00 UTC = 05:00 em Brasília (UTC-3).
+    # O cron do Actions atrasa bastante em horarios cheios (ate ~2h),
+    # entao agendamos as 5h para a mensagem chegar por volta das 7h.
+    - cron: "0 8 * * *"
   workflow_dispatch: {}
 
 jobs:

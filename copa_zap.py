@@ -502,7 +502,9 @@ def enviar_whatsapp(texto: str, telefone: str, apikey: str) -> None:
             raise RuntimeError("CallMeBot recusou a APIKey — confira o secret CALLMEBOT_APIKEY.")
         print(f"Parte {i}/{total} enviada ({len(parte)} caracteres).")
         if i < total:
-            time.sleep(10)  # respeita o rate limit do CallMeBot
+            # Com pouco intervalo o CallMeBot agrupa as partes em uma
+            # mensagem só, inserindo uma linha de traços entre elas.
+            time.sleep(65)
 
 
 def normalizar_telefone(bruto: str) -> str:
