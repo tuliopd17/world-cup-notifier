@@ -28,6 +28,17 @@ const PORT = Number(process.env.PORT || 3000);
 const AUTH_DIR = process.env.AUTH_DIR || path.join(__dirname, "auth");
 const TOKEN = process.env.WA_SERVER_TOKEN || "";
 
+// O libsignal (usado pelo Baileys) faz console.log de objetos de sessão
+// crus a cada rotação de chave, enchendo o journal de dumps de Buffer que
+// não passam pelo logger do Baileys. Filtra esse ruído, mantendo o resto.
+const _consoleLog = console.log.bind(console);
+console.log = (...args) => {
+  const first = args[0];
+  if (typeof first === "string" && first.startsWith("Closing ")) return;
+  if (first && first.constructor && first.constructor.name === "SessionEntry") return;
+  _consoleLog(...args);
+};
+
 let sock = null;
 let pronto = false;
 
