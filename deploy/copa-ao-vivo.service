@@ -1,0 +1,16 @@
+[Unit]
+Description=Copa ao vivo - avisos de inicio, gol e fim de jogo
+After=wa-server.service
+Wants=wa-server.service
+
+[Service]
+Type=simple
+User=copa
+WorkingDirectory=/opt/copa-do-mundo
+EnvironmentFile=/opt/copa-do-mundo/.env
+ExecStart=/opt/copa-do-mundo/.venv/bin/python ao_vivo.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

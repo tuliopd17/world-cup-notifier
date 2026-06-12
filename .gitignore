@@ -5,3 +5,4 @@ venv/
 .venv/
 node_modules/
 wa-server/auth/
+estado_ao_vivo.json

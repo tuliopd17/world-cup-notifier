@@ -68,9 +68,11 @@ echo ">> Instalando units do systemd"
 cp "$APP_DIR/deploy/wa-server.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/copa-zap.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/copa-zap.timer" /etc/systemd/system/
+cp "$APP_DIR/deploy/copa-ao-vivo.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now wa-server.service
 systemctl enable --now copa-zap.timer
+systemctl enable --now copa-ao-vivo.service
 
 echo ""
 echo "============================================================"

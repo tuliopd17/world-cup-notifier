@@ -11,7 +11,13 @@ resumão da Copa do Mundo 2026:
 - 📊 Classificação completa dos 12 grupos (durante a fase de grupos)
 - 🗡 Agenda do mata-mata (quando a fase de grupos acabar)
 
+E, ao longo do dia, **avisos ao vivo** a cada início de jogo, **gol** e fim de
+jogo — com festa redobrada quando é o Brasil. ⚽🇧🇷
+
 Dados grátis da [football-data.org](https://www.football-data.org).
+
+> ⚠️ Os avisos ao vivo usam o plano gratuito, cujos placares têm **algum
+> atraso** (não é tempo real puro). O gol pode chegar alguns minutos depois.
 
 ## Arquitetura
 
@@ -108,7 +114,23 @@ journalctl -u copa-zap.service -n 20 --no-pager
 ```
 
 A mensagem completa chega no seu zap. O disparo automático das 7h já está
-agendado — confira com `systemctl list-timers copa-zap.timer`.
+agendado — confira com `systemctl list-timers copa-zap.timer`. O serviço de
+**avisos ao vivo** (`copa-ao-vivo`) também já sobe sozinho pelo setup.
+
+## Avisos ao vivo (gols em tempo quase real)
+
+Além do resumo das 7h, o serviço `copa-ao-vivo.service` fica vigiando os
+jogos e te avisa no zap a cada **início de jogo, gol e fim de jogo** — com
+destaque pro Brasil. Ele faz polling adaptativo (60s com jogo rolando, 10 min
+ocioso), bem dentro do limite gratuito (10 req/min).
+
+```bash
+journalctl -u copa-ao-vivo.service -f     # acompanhar
+sudo systemctl stop copa-ao-vivo          # silenciar (se quiser só o das 7h)
+sudo systemctl start copa-ao-vivo         # religar
+```
+
+Lembre do atraso do plano gratuito: o gol pode chegar alguns minutos depois.
 
 ## Testar localmente (sem enviar nada)
 
@@ -123,7 +145,8 @@ o formato com dados fictícios: `python teste_local.py`.
 
 ## Operação
 
-- **Ver logs do envio**: `journalctl -u copa-zap.service -e`
+- **Ver logs do resumo das 7h**: `journalctl -u copa-zap.service -e`
+- **Ver logs dos avisos ao vivo**: `journalctl -u copa-ao-vivo.service -e`
 - **Ver logs do servidor WhatsApp**: `journalctl -u wa-server.service -e`
 - **Reconectar o WhatsApp** (se cair/deslogar): `sudo rm -rf /opt/copa-do-mundo/wa-server/auth && sudo systemctl restart wa-server` e escaneie o QR de novo
 - **Mudar o horário**: edite `OnCalendar` em
