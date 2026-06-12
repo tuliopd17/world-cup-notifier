@@ -50,19 +50,19 @@ apt-get install -y python3 python3-venv python3-pip
 echo ">> Criando usuário de serviço '$APP_USER'"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin "$APP_USER"
 
+echo ">> Dono dos arquivos para '$APP_USER' (antes de instalar como ele)"
+chown -R "$APP_USER:$APP_USER" "$APP_DIR"
+chmod 600 "$APP_DIR/.env"
+
 echo ">> Dependências Python (venv)"
-python3 -m venv "$APP_DIR/.venv"
-"$APP_DIR/.venv/bin/pip" install --quiet --upgrade pip
-"$APP_DIR/.venv/bin/pip" install --quiet -r "$APP_DIR/requirements.txt"
+sudo -u "$APP_USER" python3 -m venv "$APP_DIR/.venv"
+sudo -u "$APP_USER" "$APP_DIR/.venv/bin/pip" install --quiet --upgrade pip
+sudo -u "$APP_USER" "$APP_DIR/.venv/bin/pip" install --quiet -r "$APP_DIR/requirements.txt"
 
 echo ">> Dependências Node (Baileys)"
 cd "$APP_DIR/wa-server"
 sudo -u "$APP_USER" HOME="/home/$APP_USER" npm install --omit=dev --no-audit --no-fund
 cd "$APP_DIR"
-
-echo ">> Permissões"
-chown -R "$APP_USER:$APP_USER" "$APP_DIR"
-chmod 600 "$APP_DIR/.env"
 
 echo ">> Instalando units do systemd"
 cp "$APP_DIR/deploy/wa-server.service" /etc/systemd/system/
