@@ -474,15 +474,28 @@ def tamanho_whatsapp(texto: str) -> int:
 
 def dividir_mensagem(texto: str, limite: int = 700) -> list[str]:
     """Divide em partes abaixo do corte de 768 unidades UTF-16 do
-    CallMeBot, com folga, sempre quebrando em linha inteira."""
+    CallMeBot. Quebra de preferência na fronteira entre seções (linha em
+    branco), para nenhuma seção chegar pela metade; só quebra por linha
+    quando uma seção sozinha não cabe no limite."""
     partes, atual = [], ""
-    for linha in texto.split("\n"):
-        candidata = f"{atual}\n{linha}" if atual else linha
-        if atual and tamanho_whatsapp(candidata) > limite:
-            partes.append(atual)
-            atual = linha
-        else:
+    for bloco in texto.split("\n\n"):
+        candidata = f"{atual}\n\n{bloco}" if atual else bloco
+        if tamanho_whatsapp(candidata) <= limite:
             atual = candidata
+            continue
+        if atual:
+            partes.append(atual)
+            atual = ""
+        if tamanho_whatsapp(bloco) <= limite:
+            atual = bloco
+            continue
+        for linha in bloco.split("\n"):
+            candidata = f"{atual}\n{linha}" if atual else linha
+            if atual and tamanho_whatsapp(candidata) > limite:
+                partes.append(atual)
+                atual = linha
+            else:
+                atual = candidata
     if atual:
         partes.append(atual)
     return partes
