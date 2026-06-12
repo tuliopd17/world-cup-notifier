@@ -41,13 +41,18 @@ CallMeBot particionado.
 No [Oracle Cloud](https://www.oracle.com/cloud/free/) (Always Free):
 **Compute → Instances → Create**.
 
-- **Image**: Ubuntu 22.04+
-- **Shape**: `VM.Standard.A1.Flex` (ARM Ampere) com **1 OCPU e 6 GB RAM** —
-  sobra pro servidor e fica **bem dentro** do limite gratuito (4 OCPU / 24 GB)
-- ⚠️ Confirme que aparece o selo **"Always Free eligible"** na shape antes de
-  criar. Se não aparecer, você escolheu uma máquina paga — volte e ajuste.
+- **Image**: Ubuntu 22.04+ (24.04 serve)
+- **Shape**: o que tiver o selo **"Always Free-eligible"**:
+  - `VM.Standard.A1.Flex` (ARM, até 4 OCPU / 24 GB) se aparecer — mais folgado
+  - senão `VM.Standard.E2.1.Micro` (1 OCPU / 1 GB) — também grátis; o
+    `setup.sh` cria **2 GB de swap** automático pra 1 GB não estourar
+- ⚠️ Confirme o selo **"Always Free-eligible"** na shape. Sem o selo = paga.
+- **Networking**: em Subnet, escolha **"Create new public subnet"** e ligue
+  **"Automatically assign public IPv4 address"**. Sem subnet pública + IP
+  público você não acessa a VM por SSH (o toggle fica cinza se a subnet for
+  privada).
 
-Guarde a chave SSH e conecte:
+Guarde a chave SSH **privada** (o `.key` baixado na criação) e conecte:
 
 ```bash
 ssh ubuntu@SEU_IP

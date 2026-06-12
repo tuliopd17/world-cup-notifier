@@ -28,6 +28,18 @@ fi
 echo ">> Fuso horário para America/Sao_Paulo (o timer dispara às 7h locais)"
 timedatectl set-timezone America/Sao_Paulo
 
+echo ">> Garantindo swap (VMs de 1 GB, ex. E2.1.Micro, precisam ou o Baileys dá OOM)"
+if ! swapon --show | grep -q '/swapfile'; then
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  echo "   swap de 2 GB criado e ativado."
+else
+  echo "   swap já existe, ok."
+fi
+
 echo ">> Instalando Node.js 20, Python e venv"
 if ! command -v node >/dev/null 2>&1; then
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
