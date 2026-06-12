@@ -36,15 +36,27 @@ CallMeBot particionado.
 
 ## Deploy no Oracle Cloud free tier (modo recomendado)
 
-### 1. Crie a VM
+### 1. Crie a VM (de graça, sem cair em cobrança)
 
 No [Oracle Cloud](https://www.oracle.com/cloud/free/) (Always Free):
-**Compute → Instances → Create**. Escolha **Ubuntu 22.04+** (a opção ARM
-Ampere é grátis e folgada). Guarde a chave SSH e conecte:
+**Compute → Instances → Create**.
+
+- **Image**: Ubuntu 22.04+
+- **Shape**: `VM.Standard.A1.Flex` (ARM Ampere) com **1 OCPU e 6 GB RAM** —
+  sobra pro servidor e fica **bem dentro** do limite gratuito (4 OCPU / 24 GB)
+- ⚠️ Confirme que aparece o selo **"Always Free eligible"** na shape antes de
+  criar. Se não aparecer, você escolheu uma máquina paga — volte e ajuste.
+
+Guarde a chave SSH e conecte:
 
 ```bash
 ssh ubuntu@SEU_IP
 ```
+
+**Para nunca ser cobrado:** o cartão é só verificação de identidade. Fique na
+conta **gratuita** — não clique em "Upgrade to Pay As You Go". Crie só esta 1
+VM com o selo "Always Free eligible" e nada cobra, nem quando o período de
+trial de 30 dias expirar (recursos pagos seriam só desligados, não cobrados).
 
 ### 2. Token da football-data.org
 
