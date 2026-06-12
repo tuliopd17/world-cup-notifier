@@ -465,15 +465,20 @@ def montar_mensagem(partidas: list, grupos: list, hoje) -> str:
 
 # ------------------------------------------------------------------- envio
 
-def dividir_mensagem(texto: str, limite: int = 750) -> list[str]:
-    """O CallMeBot trunca a mensagem no caractere 768 (limite descoberto
-    empiricamente: contagem crua de caracteres, emoji incluso — NÃO é o
-    tamanho percent-encoded nem bytes). Quebra por linha inteira, com
-    folga de 18 caracteres."""
+def tamanho_whatsapp(texto: str) -> int:
+    """Tamanho como o CallMeBot conta: unidades UTF-16 (emoji de bandeira
+    vale 4, emoji comum 2-3, letra 1). Calibrado empiricamente: mensagem
+    é truncada na unidade 768."""
+    return len(texto.encode("utf-16-le")) // 2
+
+
+def dividir_mensagem(texto: str, limite: int = 700) -> list[str]:
+    """Divide em partes abaixo do corte de 768 unidades UTF-16 do
+    CallMeBot, com folga, sempre quebrando em linha inteira."""
     partes, atual = [], ""
     for linha in texto.split("\n"):
         candidata = f"{atual}\n{linha}" if atual else linha
-        if atual and len(candidata) > limite:
+        if atual and tamanho_whatsapp(candidata) > limite:
             partes.append(atual)
             atual = linha
         else:
@@ -558,9 +563,9 @@ def main() -> int:
     if dry_run:
         print(mensagem)
         partes = dividir_mensagem(mensagem)
-        tamanhos = ", ".join(str(len(p)) for p in partes)
+        tamanhos = ", ".join(str(tamanho_whatsapp(p)) for p in partes)
         print(f"\n--- dry run: {len(mensagem)} caracteres, {len(partes)} parte(s) "
-              f"({tamanhos} chars), nada foi enviado ---")
+              f"({tamanhos} unidades UTF-16), nada foi enviado ---")
         return 0
 
     enviar_whatsapp(mensagem, telefone, apikey)
